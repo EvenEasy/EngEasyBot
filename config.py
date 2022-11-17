@@ -1,0 +1,5 @@
+TOKEN = "5607978232:AAHMWzK-nksRMtkcZv_3pCyGE7mfUXrZbYE"
+
+GOOGLESHEETSKEY = "1LQpiv9JwT_64dKYAcOlvVobClnItOSYLut7_Ze8Kr_g"
+
+test_limit = 10
