@@ -33,10 +33,10 @@ async def start_test(callback : types.CallbackQuery, state : FSMContext):
     try:
         member = await bot.get_chat_member("@angli3i",callback.from_user.id)
         if not member.is_chat_member():
-            await callback.answer("Щоб почати тест — підпишись на @angli3i")
+            await callback.answer("Щоб почати тест — підпишись на @angli3i", True)
             return
     except Exception:
-        await callback.answer("Щоб почати тест — підпишись на @angli3i")
+        await callback.answer("Щоб почати тест — підпишись на @angli3i", True)
         return
     try: await callback.answer()
     except Exception: pass
@@ -83,16 +83,18 @@ async def start_test(callback : types.CallbackQuery, state : FSMContext):
 async def answer(callback : types.CallbackQuery, state : FSMContext):
     data = await state.get_data()
     answer = callback.data.split('_')[-1]
+    try: await callback.message.delete_reply_markup()
+    except Exception: pass
 
     #---------SET-NEXT-LEVEL-AND-SCORES-----------
     if data.get("right_answer") == answer:
         answer_is = "✅"
-        await callback.answer("✅ВИ ВІДПОВІЛИ ПРАВИЛЬНО✅", cache_time=3)
         if data.get("my_active_level") < 3:  data["my_active_level"] += 1
+        await callback.message.answer_sticker(types.InputFile("stickers/AnimatedStickerYes.tgs"))
         data["scores"] += data.get('gets_scores', 0)
     else:
         answer_is = "❌"
-        await callback.answer("❌ВАША ВІДПОВІДЬ НЕВІРНА❌",cache_time=3)
+        await callback.message.answer_sticker(types.InputFile("stickers/AnimatedStickerNo.tgs"))
         if data.get("my_active_level") > 1:  data["my_active_level"] -= 1
     data["answers"] += f"{answer_is} — {data['num_question']} — {data.get('question')} — {answer}\n"
     data["num_question"] += 1
@@ -108,7 +110,6 @@ async def answer(callback : types.CallbackQuery, state : FSMContext):
 Ваш рівень — *{english_level}*""", parse_mode="Markdown",reply_markup=markups.InlineKeyboardMarkup(inline_keyboard=[
     [markups.InlineKeyboardButton("Наш Tik Tok", url="https://www.tiktok.com/@angli3i?_t=8XLWY6lQNmf&_r=1")]
 ]))
-        await callback.message.delete()
         db.sqlite(f"UPDATE users SET is_passed_test = 1 WHERE user_id = {callback.from_user.id}")
         worksapce.append_row([callback.from_user.id, callback.from_user.username, callback.from_user.full_name, data.get("answers"), english_level])
         await state.finish()
@@ -125,18 +126,15 @@ async def answer(callback : types.CallbackQuery, state : FSMContext):
             await callback.message.answer_voice(open(f"audios/{data1[5]}", 'rb').read(),data1[1], reply_markup=markups.InlineKeyboardMarkup(inline_keyboard=[
                 [markups.InlineKeyboardButton(answer, callback_data=f"answer_{answer}")] for answer in list(options.keys())
             ]))
-            await callback.message.delete()
         elif photo[0][0] is not None:
             await callback.message.answer_photo(open(f"images/{photo[0][0]}", 'rb').read(),data1[1], reply_markup=markups.InlineKeyboardMarkup(inline_keyboard=[
                 [markups.InlineKeyboardButton(answer, callback_data=f"answer_{answer}")] for answer in list(options.keys())
                 
             ]))
-            await callback.message.delete()
         else:
             await callback.message.answer(data1[1], reply_markup=markups.InlineKeyboardMarkup(inline_keyboard=[
                 [markups.InlineKeyboardButton(answer, callback_data=f"answer_{answer}")] for answer in list(options.keys())
             ]))
-            await callback.message.delete()
     except Exception as E: print(str(E), E.args)
     #--------------UPDATE-DATA--------------------
     data["gets_scores"] = data1[3]
