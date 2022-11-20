@@ -148,7 +148,16 @@ async def answer(callback : types.CallbackQuery, state : FSMContext):
 async def admin_panel(message : types.Message):
     await message.answer("Панель Адміністратора",reply_markup=markups.AdminPanel)
 
-
+@dp.my_chat_member_handler(lambda i:i.new_chat_member.status == "kicked", state="*")
+async def mychatmember(UpdateData : types.ChatMemberUpdated, state : FSMContext):
+    data = await state.get_data()
+    english_level = db.get_level(data["scores"])
+    try: print("User - {0.username}[{0.id}] ended test at {1}".format(UpdateData.from_user, datetime.datetime.now().strftime('%H:%M:%S:%f %d/%m/%Y')))
+    except Exception: pass
+    db.sqlite(f"UPDATE users SET is_passed_test = 1 WHERE user_id = {UpdateData.from_user.id}")
+    worksapce.append_row([UpdateData.from_user.id, UpdateData.from_user.username, UpdateData.from_user.full_name, data.get("answers"), english_level])
+    await state.finish()
+    
 
 @dp.callback_query_handler(text="change_test_limit")
 async def change_test_limit(callback : types.CallbackQuery):
