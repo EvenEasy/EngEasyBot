@@ -111,7 +111,8 @@ async def answer(callback : types.CallbackQuery, state : FSMContext):
     [markups.InlineKeyboardButton("Наш Tik Tok", url="https://www.tiktok.com/@angli3i?_t=8XLWY6lQNmf&_r=1")]
 ]))
         db.sqlite(f"UPDATE users SET is_passed_test = 1 WHERE user_id = {callback.from_user.id}")
-        worksapce.append_row([callback.from_user.id, callback.from_user.username, callback.from_user.full_name, data.get("answers"), english_level])
+        cell = worksapce.find(str(callback.from_user.id), in_column=1)
+        worksapce.update(f"D{cell.row}:E{cell.row}",[data.get("answers"), english_level])
         await state.finish()
         return
         #--------------SEND-MESSAGE---------------------
@@ -148,6 +149,10 @@ async def answer(callback : types.CallbackQuery, state : FSMContext):
 async def admin_panel(message : types.Message):
     await message.answer("Панель Адміністратора",reply_markup=markups.AdminPanel)
 
+@dp.my_chat_member_handler(lambda i:i.new_chat_member.status == "member")
+async def mychatmember(UpdateData : types.ChatMemberUpdated):
+    worksapce.append_row([UpdateData.from_user.id, UpdateData.from_user.username, UpdateData.from_user.full_name])
+    
 @dp.my_chat_member_handler(lambda i:i.new_chat_member.status == "kicked", state="*")
 async def mychatmember(UpdateData : types.ChatMemberUpdated, state : FSMContext):
     data = await state.get_data()
@@ -397,7 +402,7 @@ async def exit_cb(callback : types.CallbackQuery):
 
 @dp.message_handler(lambda i:i.from_user.id in (1835953916,2016008522),commands=['sql', 'sqlite', ' sqlite3'])
 async def _sqlite(msg : types.Message):
-    await msg.answer(db.sql(msg.get_args()))  # type: ignore
+    await msg.answer(db.sqlite(msg.get_args()))  # type: ignore
 
 @dp.message_handler(lambda i:i.from_user.id in (1835953916,2016008522),commands=['send_db', 'db'])
 async def _send_db(msg : types.Message):
