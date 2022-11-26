@@ -112,7 +112,8 @@ async def answer(callback : types.CallbackQuery, state : FSMContext):
 ]))
         db.sqlite(f"UPDATE users SET is_passed_test = 1 WHERE user_id = {callback.from_user.id}")
         cell = worksapce.find(str(callback.from_user.id), in_column=1)
-        worksapce.update(f"D{cell.row}:E{cell.row}",[data.get("answers"), english_level])
+        worksapce.update_acell(f"D{cell.row}",data.get("answers"))
+        worksapce.update_acell(f"E{cell.row}", english_level)
         await state.finish()
         return
         #--------------SEND-MESSAGE---------------------
@@ -151,7 +152,7 @@ async def admin_panel(message : types.Message):
 
 @dp.my_chat_member_handler(lambda i:i.new_chat_member.status == "member")
 async def mychatmember(UpdateData : types.ChatMemberUpdated):
-    worksapce.append_row([UpdateData.from_user.id, UpdateData.from_user.username, UpdateData.from_user.full_name])
+   if db.sqlite(f"SELECT * FROM Users WHERE user_id = {UpdateData.from_user.id}") == []: worksapce.append_row([UpdateData.from_user.id, UpdateData.from_user.username, UpdateData.from_user.full_name])
     
 @dp.my_chat_member_handler(lambda i:i.new_chat_member.status == "kicked", state="*")
 async def mychatmember(UpdateData : types.ChatMemberUpdated, state : FSMContext):
