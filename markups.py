@@ -13,8 +13,26 @@ Menu = InlineKeyboardMarkup(inline_keyboard=[
 
 AdminPanel = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton("Додати питання", callback_data="add_question"), InlineKeyboardButton("Видалити питання", callback_data="remove_question")],
-        [InlineKeyboardButton("Змінити кількість питань", callback_data="change_test_limit")],
-        [InlineKeyboardButton("Внести зміни в питання", callback_data="enter_edit_question")]
+        [
+            InlineKeyboardButton("Почати гру", callback_data="game_start"),
+            InlineKeyboardButton("Створити гру", callback_data="create_game"),
+            InlineKeyboardButton("Список учасників", callback_data="game_participant")
+        ]
     ]
 )
+
+game_level_markup = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton("BEGINNER (A1)", callback_data="level_BEGINNER (A1)")],
+    [InlineKeyboardButton("PRE-INTERMEDIATE (A2)", callback_data="level_PRE-INTERMEDIATE (A2)")],
+    [InlineKeyboardButton("INTERMEDIATE (B1)", callback_data="level_INTERMEDIATE (B1)")],
+    [InlineKeyboardButton("UPPER-INTERMEDIATE (B2)", callback_data="level_UPPER-INTERMEDIATE (B2)")],
+    [InlineKeyboardButton("ADVANCED (C1)", callback_data="level_ADVANCED (C1)")]
+])
+
+start_game_markup = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton("Грати", callback_data="join_game")]
+])
+
+exit_game_markup = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton("Вийти", callback_data="exit_game")]
+])
