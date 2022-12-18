@@ -13,11 +13,10 @@ Menu = InlineKeyboardMarkup(inline_keyboard=[
 
 AdminPanel = InlineKeyboardMarkup(
     inline_keyboard=[
-        [
-            InlineKeyboardButton("Почати гру", callback_data="game_start"),
-            InlineKeyboardButton("Створити гру", callback_data="create_game"),
-            InlineKeyboardButton("Список учасників", callback_data="game_participant")
-        ]
+        [InlineKeyboardButton("Почати гру", callback_data="game_start")],
+        [InlineKeyboardButton("Створити гру", callback_data="create_game")],
+        [InlineKeyboardButton("Список учасників", callback_data="game_participant")],
+        [InlineKeyboardButton("Відправити повідомлення", callback_data="send_messages")]
     ]
 )
 
@@ -26,7 +25,8 @@ game_level_markup = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton("PRE-INTERMEDIATE (A2)", callback_data="level_PRE-INTERMEDIATE (A2)")],
     [InlineKeyboardButton("INTERMEDIATE (B1)", callback_data="level_INTERMEDIATE (B1)")],
     [InlineKeyboardButton("UPPER-INTERMEDIATE (B2)", callback_data="level_UPPER-INTERMEDIATE (B2)")],
-    [InlineKeyboardButton("ADVANCED (C1)", callback_data="level_ADVANCED (C1)")]
+    [InlineKeyboardButton("ADVANCED (C1)", callback_data="level_ADVANCED (C1)")],
+    [InlineKeyboardButton("All Levels", callback_data="level_All levels")]
 ])
 
 start_game_markup = InlineKeyboardMarkup(inline_keyboard=[
@@ -36,3 +36,9 @@ start_game_markup = InlineKeyboardMarkup(inline_keyboard=[
 exit_game_markup = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton("Вийти", callback_data="exit_game")]
 ])
+
+def support_markup(chat_id):
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("Відповісти", callback_data=f"answer_user_{chat_id}")]])
+
+def reg_markups(game_code : int):
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("Зареєструватись", callback_data=f"reg_game_{game_code}", pay=True)]])

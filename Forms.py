@@ -11,5 +11,11 @@ class AdminForms(StatesGroup):
     date_game = State()
     options = State()
 
+    answer_support = State()
+    
+    select_receiver = State()
+    send_message = State()
+
+class GameForms(StatesGroup):
     game_process = State()
     game_participant_process = State()
