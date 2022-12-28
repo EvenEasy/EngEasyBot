@@ -21,17 +21,16 @@ AdminPanel = InlineKeyboardMarkup(
 )
 
 game_level_markup = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton("BEGINNER (A1)", callback_data="level_BEGINNER (A1)")],
-    [InlineKeyboardButton("PRE-INTERMEDIATE (A2)", callback_data="level_PRE-INTERMEDIATE (A2)")],
-    [InlineKeyboardButton("INTERMEDIATE (B1)", callback_data="level_INTERMEDIATE (B1)")],
-    [InlineKeyboardButton("UPPER-INTERMEDIATE (B2)", callback_data="level_UPPER-INTERMEDIATE (B2)")],
-    [InlineKeyboardButton("ADVANCED (C1)", callback_data="level_ADVANCED (C1)")],
+    [InlineKeyboardButton("Junior", callback_data="level_Junior")],
+    [InlineKeyboardButton("Middle", callback_data="level_Middle")],
+    [InlineKeyboardButton("Senior", callback_data="level_Senior")],
     [InlineKeyboardButton("All Levels", callback_data="level_All levels")]
 ])
 
-start_game_markup = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton("Грати", callback_data="join_game")]
-])
+def start_game_markup(game_code : str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton("Грати", callback_data=f"join_game_{game_code}")]
+    ])
 
 exit_game_markup = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton("Вийти", callback_data="exit_game")]
@@ -41,4 +40,10 @@ def support_markup(chat_id):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("Відповісти", callback_data=f"answer_user_{chat_id}")]])
 
 def reg_markups(game_code : int):
-    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("Зареєструватись", callback_data=f"reg_game_{game_code}", pay=True)]])
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton("Зареєструватись", callback_data=f"reg_game_{game_code}")]])
+
+def murkup_welcome(_dict : dict):
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    for key in list(_dict.keys()):
+        markup.add(key)
+    return markup

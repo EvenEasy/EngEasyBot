@@ -25,14 +25,17 @@ async def start(message : types.Message):
         try: print("User - {0.username}[{0.id}] started use the bot at {1}".format(message.from_user, datetime.now().strftime('%H:%M:%S:%f %d/%m/%Y')))
         except Exception: pass
         db.sqlite(f"INSERT INTO users (user_id, full_name, is_passed_test) VALUES ({message.from_user.id}, '{message.from_user.full_name}', 0)")
+    #await message.answer_sticker(types.InputFile('stickers/sticker.webm'))
     await message.answer_voice(types.InputFile("audios/Вітання.mp3"),
         f"""Вітаю, *{message.from_user.first_name}*!""",parse_mode="Markdown",reply_markup=markups.murkup_welcome(config.welcome_pages.get("1")[1]))
 
-    cell = worksapce2.find(str(message.from_user.id), in_column=1)
-    member = await bot.get_chat_member("@angli3i", message.from_user.id)
-    isSub = 'Так' if member.is_chat_member() else 'Ні'
+    cell = worksapce1.find(str(message.from_user.id), in_column=10)
+    try:
+        member = await bot.get_chat_member("@angli3i", message.from_user.id)
+        isSub = 'Так' if member.is_chat_member() else 'Ні'
+    except Exception: isSub = 'Невідомо'
     if cell is None:
-        worksapce2.append_row([
+        worksapce1.append_row([
             datetime.now().strftime('%d.%m.%Y - %H:%M'),
             None,
             'Junior',
@@ -48,57 +51,55 @@ async def start(message : types.Message):
 
 @dp.my_chat_member_handler(lambda i:i.new_chat_member.status == "kicked")
 async def user_block(UpdateData : types.ChatMemberUpdated):
-    cell = worksapce2.find(str(UpdateData.from_user.id), in_column=1)
+    cell = worksapce1.find(str(UpdateData.from_user.id), in_column=10)
     if cell is not None:
-        worksapce2.update_acell(f"Н{cell.row}",'Ні')
+        worksapce1.update_acell(f"Н{cell.row}",'Ні')
 
 @dp.my_chat_member_handler()
 async def user_block(UpdateData : types.ChatMemberUpdated):
-    cell = worksapce2.find(str(UpdateData.from_user.id), in_column=1)
+    cell = worksapce1.find(str(UpdateData.from_user.id), in_column=10)
     if cell is not None:
-        worksapce2.update_acell(f"Н{cell.row}",'Так')
+        worksapce1.update_acell(f"Н{cell.row}",'Так')
 
-@dp.callback_query_handler(text="welcome_page_reg")
-async def reg_welcome_page(callback : types.CallbackQuery):
-    try: await callback.answer()
-    except Exception: pass
-    game = db.get_new_game(None)
+@dp.message_handler(text="ЗАРЕЄСТРУВАТИСЬ")
+async def reg_welcome_page(message : types.Message):
+    game = db.get_new_game(db.get_user_info(message.from_user.id, 'level')[0])
     print(game)
     if game:
         date_to_start = (datetime.strptime(game[4],"%d.%m.%Y %H:%M")-datetime.now()).total_seconds()
         date_to_start = f"{int(date_to_start // 3600)} години" if date_to_start >= 3600 else f"{int(date_to_start // 60)} хв."
-        num_played_games = db.sqlite(f"SELECT num_played_games FROM Users WHERE user_id = '{callback.from_user.id}'")
-        num_played_games = num_played_games[0][0] if num_played_games is not None and num_played_games[0][0] != 0 else 1
-        price = num_played_games if num_played_games < 1 else 49
+        num_played_games, = db.get_user_info(message.from_user.id, "num_played_games")
+        print(num_played_games)
+        price = 1 if num_played_games < 1 else 49
+        print(price)
         prices = [
         types.LabeledPrice(label="Реєстрація на гру", amount=price*100)
         ]
-        try: await bot.send_invoice(
-            callback.from_user.id,
-            title=game[0],
-            description=game[1],
-            provider_token=config.PAYMENTPROVIDERTOKEN,
-            currency="UAH",
-            prices=prices,
-            start_parameter=f"reg_game_{game[3]}",
-            payload=f"reg_game_{game[3]}"
-        )
-        except aiogram.utils.exceptions.ChatNotFound: pass
-        await callback.message.answer(f"*{game[0]}*\n\n{game[1]}\n\nпочаток через *{date_to_start}*", reply_markup=markups.reg_markups(game[3]), parse_mode='Markdown')
+        try:
+            await bot.send_invoice(
+                message.from_user.id,
+                title=game[0],
+                description=game[1],
+                provider_token=config.PAYMENTPROVIDERTOKEN,
+                currency="UAH",
+                prices=prices,
+                start_parameter=f"reg_game_{game[3]}",
+                payload=f"reg_game_{game[3]}"
+            )
+        except Exception as E:
+            print(str(E))
+            await message.answer("Сталася якась помилка з платіжною системою")
     else:
-        await callback.message.answer("На даний момент активних ігр немає")
+        await message.answer("На даний момент активних ігр немає")
 
-@dp.callback_query_handler(text_contains="welcome_page_")
-async def welcome_page(callback : types.CallbackQuery):
-    page = callback.data.split('_')[-1]
-    try: await callback.answer()
-    except Exception: pass
-    data = config.welcome_pages.get(page)
-    if data[0] is not None:await callback.message.answer_voice(types.InputFile(f"audios/{data[0]}"), reply_markup=markups.murkup_welcome(data[1]))
-    else: await callback.message.answer("Меню", reply_markup=markups.murkup_welcome(data[1]))
-    cell = worksapce2.find(str(callback.from_user.id), in_column=1)
+@dp.message_handler(lambda i:i.text in config.bttns_list)
+async def welcome_page(message : types.Message):
+    data = config.welcome_pages.get(message.text)
+    if data[0] is not None:await message.answer_voice(types.InputFile(f"audios/{data[0]}"), reply_markup=markups.murkup_welcome(data[1]))
+    else: await message.answer("Меню", reply_markup=markups.murkup_welcome(data[1]))
+    cell = worksapce1.find(str(message.from_user.id), in_column=10)
     if cell is not None:
-        worksapce2.update_acell(f"F{cell.row}", f"{page} {data[0][:-4:] if data[0] is not None else 'Меню'}")
+        worksapce1.update_acell(f"F{cell.row}", f"{message.text} {data[0][:-4:] if data[0] is not None else 'Меню'}")
 
 #=============================GAME=============================
 
@@ -162,7 +163,9 @@ async def answer_user(callback : types.CallbackQuery, state : FSMContext):
         reply_markup=types.ReplyKeyboardMarkup([["Скасувати"]], True, input_field_placeholder="введіть повідомлення для цього користувача")
     )
 
-@dp.message_handler(state=Forms.AdminForms.answer_support)
+@dp.message_handler(state=Forms.AdminForms.answer_support,  content_types=[
+    types.ContentType.ANY
+])
 async def answer_user_message(message : types.Message, state : FSMContext):
     if message.text == "Скасувати":
         await state.finish()
@@ -171,9 +174,26 @@ async def answer_user_message(message : types.Message, state : FSMContext):
     data = await state.get_data()
     await state.finish()
     await data.get('callback_message').delete_reply_markup()
-    try:await bot.send_message(data.get('chat_id', None), message.text)
-    except Exception: pass
-    
+    print(data)
+    match message.content_type:
+        case types.ContentType.TEXT:
+            for user_id, in db.get_receiver(data.get('chat_id')):
+                await bot.send_message(user_id, message.text)
+        case types.ContentType.PHOTO:
+            await message.photo[-1].download(f'temp/photo_{message.from_user.id}.jpg')
+            for user_id, in db.get_receiver(data.get('chat_id')):
+                await bot.send_photo(user_id, types.InputFile(f'temp/photo_{message.from_user.id}.jpg'),message.caption)
+            os.remove(f'temp/photo_{message.from_user.id}.jpg')
+        case types.ContentType.VOICE:
+            await message.voice.download(f'temp/voice_{message.from_user.id}.mp3')
+            for user_id, in db.get_receiver(data.get('chat_id')):
+                await bot.send_voice(user_id, types.InputFile(f'temp/voice_{message.from_user.id}.mp3'),message.caption)
+            os.remove(f'temp/voice_{message.from_user.id}.mp3')
+        case types.ContentType.VIDEO_NOTE:
+            await message.video_note.download(f'temp/video_note_{message.from_user.id}.mp4')
+            for user_id, in db.get_receiver(data.get('chat_id')):
+                await bot.send_video_note(user_id, types.InputFile(f'temp/video_note_{message.from_user.id}.mp4'),message.caption)
+            os.remove(f'temp/video_note_{message.from_user.id}.mp4')
     await message.answer("Повідомлення було відправлено !", reply_markup=types.ReplyKeyboardRemove())
 
 #============================PLAYERS LIST============================
@@ -463,9 +483,22 @@ async def finish_game(message : types.Message, state : FSMContext):
     game_winner = db.game_winner(data.get("game_code", None))
     db.sqlite(f"DELETE FROM Games WHERE game_code = '{data.get('game_code')}'")
     db.sqlite(f"DELETE FROM GamesComponents WHERE game_code = '{data.get('game_code')}'")
-    
+    level = worksapce1.find(str(game_winner[0]), in_column=10)
+    if level:
+        level1 = worksapce1.row_values(level.row)
+        rank_level = config.levels_rank.get(level1[2])
+        new_rank_level = config.rank_levels.get(str(rank_level+1)) if rank_level+1 <= 3 else config.rank_levels.get(str(rank_level))
+        worksapce1.update_acell(f'C{level.row}', new_rank_level)
+        db.sqlite(f"UPDATE Users SET level = '{new_rank_level}' WHERE user_id = {game_winner[0]}")
+    else:
+        level = ''
+        new_rank_level = ''
     for user_id in config.list_active_players:
-        await bot.send_message(int(user_id), f"Гра завершина !\nПереможець : {game_winner[0]} | {game_winner[1]} балів \n\nНатисніть *вийти* щоб вийти з гри", parse_mode='Markdown', reply_markup=markups.exit_game_markup)
+        await bot.send_message(int(user_id), f"""ВіТАЄМО ГРАВЦіВ, 
+ЯКі ПЕРЕЙШЛИ НА РІВЕНЬ {new_rank_level}.
+
+1 МіСЦЕ : @{level}
+PROMOTION : """, parse_mode='Markdown', reply_markup=markups.exit_game_markup)
     await message.answer(f"""АДМІН ПАНЕЛЬ""",reply_markup=markups.AdminPanel)
     config.list_active_players = []
 
@@ -539,11 +572,12 @@ async def game_answer(callback : types.CallbackQuery, state : FSMContext):
         data["answers"] += f"{{data.get('_round', 0)}} - {callback.message.text if callback.message.text is not None else callback.message.caption} - ✅\n"
         db.update_score(1, callback.from_user.id, data.get('game_code'))
         await bot.send_message(2016008522, f"Користувач {callback.from_user.id}\nВідповів : Правильно")
-        await callback.answer("✅",show_alert=True)
+        await callback.message.answer_sticker(types.InputFile("stickers\AnimatedStickerYes.tgs"))
     else:
         data["answers"] += f"{data.get('_round', 0)} - {callback.message.text if callback.message.text is not None else callback.message.caption} - ❌\n"
         await bot.send_message(2016008522, f"Користувач {callback.from_user.id}\nВідповів : Не правильно")
         await callback.answer("❌",show_alert=True)
+        await callback.message.answer_sticker(types.InputFile("stickers\AnimatedStickerNo.tgs"))
     await state.update_data(data)
 
 @dp.pre_checkout_query_handler()
