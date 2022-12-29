@@ -19,3 +19,4 @@ class AdminForms(StatesGroup):
 class GameForms(StatesGroup):
     game_process = State()
     game_participant_process = State()
+    send_message = State()
