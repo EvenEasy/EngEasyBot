@@ -96,3 +96,10 @@ class BaseData:
         with self.connection:
             return dict(zip([str(i) for i, in self.cursor.execute(f"SELECT DISTINCT Score FROM GameUsers WHERE game_code = '{game_code}' ORDER BY Score DESC LIMIT 3").fetchall()], list(config.pos.values())))
 
+    def get_game(self, game_code : str, args = '*'):
+        with self.connection:
+            return self.cursor.execute(f"SELECT {args} FROM Games WHERE game_code = '{game_code}'").fetchone()
+    
+    def get_questions(self, game_code : str, offset : str = ''):
+        with self.connection:
+            return [(question, optino)for question, optino in self.cursor.execute(f"SELECT question, options FROM GamesComponents WHERE game_code = '{game_code}' AND question LIKE '{offset}%' LIMIT 30").fetchall()]

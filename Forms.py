@@ -11,6 +11,11 @@ class AdminForms(StatesGroup):
     date_game = State()
     options = State()
 
+    select_edit_game = State()
+    select_question = State()
+    select_action = State()
+    edit_question = State()
+
     answer_support = State()
     
     select_receiver = State()
@@ -19,4 +24,5 @@ class AdminForms(StatesGroup):
 class GameForms(StatesGroup):
     game_process = State()
     game_participant_process = State()
+
     send_message = State()

@@ -15,8 +15,16 @@ AdminPanel = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton("Почати гру", callback_data="game_start")],
         [InlineKeyboardButton("Створити гру", callback_data="create_game")],
+        [InlineKeyboardButton("Редагувати гру", callback_data="edit_game")],
         [InlineKeyboardButton("Список учасників", callback_data="game_participant")],
         [InlineKeyboardButton("Відправити повідомлення", callback_data="send_messages")]
+    ]
+)
+
+actinos = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton("Редагувати", callback_data="edit")],
+        [InlineKeyboardButton("Видалити", callback_data="delete")],
+        [InlineKeyboardButton("Вийти✖️", callback_data="exit_edit_game")]
     ]
 )
 
