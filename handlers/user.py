@@ -13,7 +13,7 @@ async def start(message : types.Message):
         except Exception: pass
         db.sqlite(f"INSERT INTO users (user_id, full_name, is_passed_test) VALUES ({message.from_user.id}, '{message.from_user.full_name}', 0)")
     await message.answer_sticker(types.InputFile('stickers/angli3i.tgs'))
-    await message.answer_voice(types.InputFile("audios/Вітання.mp3"),
+    await message.answer_voice(types.InputFile(f"audios/{config.welcome_pages.get('1')[0]}"),
         f"""Вітаю, *{message.from_user.first_name}*!""",parse_mode="Markdown",reply_markup=markups.murkup_welcome(config.welcome_pages.get("1")[1]))
 
     cell = user_workspace.find(str(message.from_user.id), in_column=10)
@@ -69,7 +69,7 @@ async def welcome_page(message : types.Message):
     else: await message.answer("Меню", reply_markup=markups.murkup_welcome(data[1]))
     cell = user_workspace.find(str(message.from_user.id), in_column=10)
     if cell is not None:
-        user_workspace.update_acell(f"F{cell.row}", f"{message.text} {data[0][:-4:] if data[0] is not None else 'Меню'}")
+        user_workspace.update_acell(f"F{cell.row}", message.text)
 
 async def reg_game(callback : types.CallbackQuery):
     print(callback.data)
